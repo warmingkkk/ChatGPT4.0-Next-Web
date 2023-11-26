@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getServerSideConfig } from "../../config/server";
 
@@ -11,13 +11,23 @@ const DANGER_CONFIG = {
   hideUserApiKey: serverConfig.hideUserApiKey,
   disableGPT4: serverConfig.disableGPT4,
   hideBalanceQuery: serverConfig.hideBalanceQuery,
+  disableFastLink: serverConfig.disableFastLink,
+  customModels: serverConfig.customModels,
 };
 
 declare global {
   type DangerConfig = typeof DANGER_CONFIG;
 }
 
-async function handle() {
+// List of disabled regions
+const DISABLED_REGIONS = ['HKG1'];
+
+async function handle(request: NextRequest) {
+  // Check if the region is disabled
+  if (DISABLED_REGIONS.includes(request.cf.colo)) {
+    return new NextResponse('Service not available in your region', { status: 403 });
+  }
+
   return NextResponse.json(DANGER_CONFIG);
 }
 
